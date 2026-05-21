@@ -339,7 +339,6 @@
       <div class="prog-sub" id="sub20"></div>
     </div>
 
-    <div class="msg" id="msg" style="display:none"></div>
   </div>
 
   <!-- グラフ -->
@@ -476,26 +475,6 @@
     document.getElementById('sub30').textContent = subText;
     document.getElementById('sub20').textContent = subText;
 
-    // 予測との比較メッセージ
-    const msg = document.getElementById('msg');
-    if (totalMan > 0) {
-      // 経過月数時点の理論値（300万スタート想定）
-      const proj30 = 300 * Math.pow(1+RATE30, elapsed/12) + 300 + elapsed*10;
-      const proj20 = 300 * Math.pow(1+RATE20, elapsed/12) + 300 + elapsed*10;
-      msg.style.display = 'block';
-      if (totalMan >= proj30) {
-        msg.className = 'msg good';
-        msg.textContent = '🎉 30%シナリオ予測を上回るペースです！';
-      } else if (totalMan >= proj20) {
-        msg.className = 'msg good';
-        msg.textContent = '✅ 20%予測ペース！30%予測まであと ' + fmt(proj30 - totalMan);
-      } else {
-        msg.className = 'msg warn';
-        msg.textContent = '📌 20%予測まであと ' + fmt(proj20 - totalMan);
-      }
-    } else {
-      msg.style.display = 'none';
-    }
 
     // グラフ
     const labels = [], data30 = [], data20 = [], dataNow = [];
