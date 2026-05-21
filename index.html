@@ -421,10 +421,6 @@
     // 合計・年利益
     document.getElementById('totalVal').textContent =
       totalMan > 0 ? fmt(totalMan) : '― 万円';
-    document.getElementById('income30').textContent =
-      stocksMan > 0 ? '30%: ' + fmt(stocksMan * RATE30) : '―';
-    document.getElementById('income20').textContent =
-      stocksMan > 0 ? '20%: ' + fmt(stocksMan * RATE20) : '20%: ―';
 
     // 今月の増加額
     const mRate30 = Math.pow(1 + RATE30, 1/12) - 1;
