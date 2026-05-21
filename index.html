@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="人生設計">
+  <title>📈 人生設計ダッシュボード</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, 'Noto Sans JP', sans-serif; background: #f2f2f7; color: #1c1c1e; }
+
+    header {
+      background: linear-gradient(135deg, #1d3557, #457b9d);
+      color: white; padding: 24px 16px 20px;
+    }
+    header h1 { font-size: 20px; margin-bottom: 4px; }
+    header p  { font-size: 13px; opacity: .75; }
+
+    .section { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+    .card {
+      background: white; border-radius: 16px; padding: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+    .card-title {
+      font-size: 11px; color: #8e8e93;
+      text-transform: uppercase; letter-spacing: .5px;
+      margin-bottom: 14px;
+    }
+
+    /* 入力フィールド */
+    .input-block { display: flex; flex-direction: column; gap: 12px; }
+    .input-row {
+      background: #f2f2f7; border-radius: 12px; padding: 12px 14px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .input-row label { font-size: 12px; color: #8e8e93; }
+    .input-inner { display: flex; align-items: baseline; gap: 6px; }
+    .input-inner input {
+      flex: 1; font-size: 26px; font-weight: bold; color: #1d3557;
+      border: none; border-bottom: 2px solid #457b9d;
+      background: transparent; outline: none; font-family: inherit;
+      padding: 2px 0; min-width: 0;
+    }
+    .input-inner input::placeholder { color: #c7c7cc; font-weight: normal; font-size: 20px; }
+    .input-inner .unit { font-size: 15px; color: #8e8e93; white-space: nowrap; }
+
+    /* 合計バナー */
+    .total-banner {
+      background: linear-gradient(135deg, #1d3557, #457b9d);
+      border-radius: 14px; padding: 16px;
+      display: flex; justify-content: space-between; align-items: center;
+      color: white; margin-top: 4px;
+    }
+    .total-banner .label { font-size: 12px; opacity: .8; margin-bottom: 4px; }
+    .total-banner .value { font-size: 26px; font-weight: bold; }
+    .total-banner .right { text-align: right; }
+    .total-banner .right .sub { font-size: 12px; opacity: .8; margin-top: 4px; }
+
+    /* 今月の増加 */
+    .diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .diff-box {
+      border-radius: 12px; padding: 12px;
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .diff-box.d30 { background: #fff4e0; }
+    .diff-box.d20 { background: #e8f4f8; }
+    .diff-box .dlabel { font-size: 11px; color: #8e8e93; }
+    .diff-box .dval   { font-size: 19px; font-weight: bold; }
+    .diff-box.d30 .dval { color: #c87000; }
+    .diff-box.d20 .dval { color: #2a6a8a; }
+    .diff-box .dsub   { font-size: 11px; color: #8e8e93; }
+
+    /* 到達予測 */
+    .reach-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+    .reach-box {
+      border-radius: 12px; padding: 12px;
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .reach-box.r30 { background: #fff4e0; }
+    .reach-box.r20 { background: #e8f4f8; }
+    .reach-box .rlabel { font-size: 11px; color: #8e8e93; }
+    .reach-box .rage   { font-size: 22px; font-weight: bold; }
+    .reach-box.r30 .rage { color: #c87000; }
+    .reach-box.r20 .rage { color: #2a6a8a; }
+    .reach-box .ryear  { font-size: 12px; color: #8e8e93; margin-top: 1px; }
+
+    /* 進捗バー */
+    .prog-block { margin-bottom: 12px; }
+    .prog-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+    .prog-label .name { font-weight: bold; }
+    .prog-label .pct  { font-weight: bold; }
+    .pct.over  { color: #34c759; }
+    .pct.under { color: #ff9f0a; }
+    .bar-bg { height: 10px; background: #f2f2f7; border-radius: 5px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 5px; transition: width .5s; }
+    .bar30 { background: #ff9f0a; }
+    .bar20 { background: #457b9d; }
+    .bar-over { background: #34c759; }
+    .prog-sub { font-size: 11px; color: #8e8e93; margin-top: 4px; }
+
+    .msg {
+      border-radius: 10px; padding: 10px 12px;
+      font-size: 13px; margin-top: 8px; border-left: 4px solid;
+    }
+    .msg.good { background: #e8f8ed; border-color: #34c759; color: #1d5e35; }
+    .msg.warn { background: #fff8e0; border-color: #ff9f0a; color: #7a5000; }
+
+    .divider { height: 1px; background: #f2f2f7; margin: 12px 0; }
+
+    .section-label { font-size: 11px; color: #8e8e93; margin-bottom: 8px; }
+
+    /* グラフ */
+    .chart-wrap { position: relative; height: 260px; }
+
+    footer { height: 40px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📈 人生設計ダッシュボード</h1>
+  <p id="headerSub">計算中…</p>
+</header>
+
+<div class="section">
+
+  <!-- 入力カード -->
+  <div class="card">
+    <div class="card-title">現在の資産額を入力</div>
+    <div class="input-block">
+      <div class="input-row">
+        <label>📊 個別株</label>
+        <div class="input-inner">
+          <input type="number" id="inputStocks" placeholder="300" min="0" step="10">
+          <span class="unit">万円</span>
+        </div>
+      </div>
+      <div class="input-row">
+        <label>🏦 積立NISA</label>
+        <div class="input-inner">
+          <input type="number" id="inputNisa" placeholder="300" min="0" step="10">
+          <span class="unit">万円</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="total-banner" style="margin-top:12px;">
+      <div>
+        <div class="label">合計資産</div>
+        <div class="value" id="totalVal">― 万円</div>
+      </div>
+      <div class="right">
+        <div class="label">個別株 年利益（30%）</div>
+        <div id="income30" style="font-size:15px;font-weight:bold;">―</div>
+        <div class="sub" id="income20" style="margin-top:2px;">20%: ―</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 今月の増加額 -->
+  <div class="card">
+    <div class="card-title">今月の増加額（試算）</div>
+    <div class="diff-grid">
+      <div class="diff-box d30">
+        <div class="dlabel">30%シナリオ</div>
+        <div class="dval" id="diff30">―</div>
+        <div class="dsub" id="diff30detail">株 ― ＋ NISA 10万</div>
+      </div>
+      <div class="diff-box d20">
+        <div class="dlabel">20%シナリオ</div>
+        <div class="dval" id="diff20">―</div>
+        <div class="dsub" id="diff20detail">株 ― ＋ NISA 10万</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1億到達予測 & 進捗 -->
+  <div class="card">
+    <div class="card-title">1億円への道のり</div>
+
+    <div class="section-label">🎯 到達予測</div>
+    <div class="reach-grid">
+      <div class="reach-box r30">
+        <div class="rlabel">30%シナリオ</div>
+        <div class="rage" id="reach30age">― 歳</div>
+        <div class="ryear" id="reach30year">―年ごろ</div>
+      </div>
+      <div class="reach-box r20">
+        <div class="rlabel">20%シナリオ</div>
+        <div class="rage" id="reach20age">― 歳</div>
+        <div class="ryear" id="reach20year">―年ごろ</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-label">📊 現在の進捗</div>
+    <div class="prog-block">
+      <div class="prog-label">
+        <span class="name">30%シナリオ</span>
+        <span class="pct" id="pct30">―%</span>
+      </div>
+      <div class="bar-bg"><div class="bar-fill bar30" id="bar30" style="width:0"></div></div>
+      <div class="prog-sub" id="sub30"></div>
+    </div>
+    <div class="prog-block" style="margin-bottom:4px;">
+      <div class="prog-label">
+        <span class="name">20%シナリオ</span>
+        <span class="pct" id="pct20">―%</span>
+      </div>
+      <div class="bar-bg"><div class="bar-fill bar20" id="bar20" style="width:0"></div></div>
+      <div class="prog-sub" id="sub20"></div>
+    </div>
+
+    <div class="msg" id="msg" style="display:none"></div>
+  </div>
+
+  <!-- グラフ -->
+  <div class="card">
+    <div class="card-title">成長曲線（1億円まで）</div>
+    <div class="chart-wrap">
+      <canvas id="chart"></canvas>
+    </div>
+  </div>
+
+</div>
+<footer></footer>
+
+<script>
+  const START_YEAR  = 2025;
+  const START_MONTH = 1;
+  const START_AGE   = 34;
+  const NISA_MONTH  = 100000;
+  const RATE30      = 0.30;
+  const RATE20      = 0.20;
+  const GOAL        = 100000000;
+  const GRAPH_MAX   = 150000000;
+
+  const now      = new Date();
+  const curYear  = now.getFullYear();
+  const curMonth = now.getMonth() + 1;
+  const elapsed  = (curYear - START_YEAR) * 12 + (curMonth - START_MONTH);
+  const curAge   = START_AGE + Math.floor(elapsed / 12);
+
+  document.getElementById('headerSub').textContent =
+    `${curAge}歳 / ${curYear}年${curMonth}月`;
+
+  // 表示フォーマット（万円単位入力なので内部は万円単位で扱う）
+  const fmt = v => {
+    if (v >= 10000) return (v / 10000).toFixed(2) + '億円';
+    if (v >= 1)     return Math.round(v) + '万円';
+    return Math.round(v * 10000) + '円';
+  };
+  const fmtSign = v => '+' + fmt(v);
+
+  // LocalStorageへの保存・読み込み（未保存なら300をデフォルト）
+  function save() {
+    localStorage.setItem('lifeapp_stocks', document.getElementById('inputStocks').value);
+    localStorage.setItem('lifeapp_nisa',   document.getElementById('inputNisa').value);
+  }
+  function load() {
+    const s = localStorage.getItem('lifeapp_stocks') ?? '300';
+    const n = localStorage.getItem('lifeapp_nisa')   ?? '300';
+    document.getElementById('inputStocks').value = s;
+    document.getElementById('inputNisa').value   = n;
+  }
+
+  // 到達年数を計算（何年後に1億に達するか）
+  function calcReachYear(stocksMan, nisaMan, rate) {
+    const stocks = stocksMan * 1e4;
+    const nisa   = nisaMan   * 1e4;
+    if (stocks + nisa <= 0) return null;
+    for (let y = 0; y <= 60; y++) {
+      const v = stocks * Math.pow(1 + rate, y) + nisa + NISA_MONTH * 12 * y;
+      if (v >= GOAL) return y;
+    }
+    return null;
+  }
+
+  // 月次増加額（万円単位）
+  function monthlyIncrease(stocksMan, rate) {
+    const monthly = Math.pow(1 + rate, 1 / 12) - 1;
+    return stocksMan * monthly + NISA_MONTH / 1e4;
+  }
+
+  let chartInstance = null;
+
+  function update() {
+    const stocksMan = parseFloat(document.getElementById('inputStocks').value) || 0;
+    const nisaMan   = parseFloat(document.getElementById('inputNisa').value)   || 0;
+    const totalMan  = stocksMan + nisaMan;
+
+    save();
+
+    // 合計・年利益
+    document.getElementById('totalVal').textContent =
+      totalMan > 0 ? fmt(totalMan) : '― 万円';
+    document.getElementById('income30').textContent =
+      stocksMan > 0 ? '30%: ' + fmt(stocksMan * RATE30) : '―';
+    document.getElementById('income20').textContent =
+      stocksMan > 0 ? '20%: ' + fmt(stocksMan * RATE20) : '20%: ―';
+
+    // 今月の増加額
+    const mRate30 = Math.pow(1 + RATE30, 1/12) - 1;
+    const mRate20 = Math.pow(1 + RATE20, 1/12) - 1;
+    const stockDiff30 = stocksMan * mRate30;
+    const stockDiff20 = stocksMan * mRate20;
+    document.getElementById('diff30').textContent =
+      stocksMan > 0 ? fmtSign(stockDiff30 + NISA_MONTH/1e4) : '―';
+    document.getElementById('diff20').textContent =
+      stocksMan > 0 ? fmtSign(stockDiff20 + NISA_MONTH/1e4) : '―';
+    document.getElementById('diff30detail').textContent =
+      stocksMan > 0 ? `株 +${fmt(stockDiff30)} ＋ NISA 10万` : '数値を入力してください';
+    document.getElementById('diff20detail').textContent =
+      stocksMan > 0 ? `株 +${fmt(stockDiff20)} ＋ NISA 10万` : '';
+
+    // 到達予測
+    const y30 = calcReachYear(stocksMan, nisaMan, RATE30);
+    const y20 = calcReachYear(stocksMan, nisaMan, RATE20);
+    if (y30 !== null) {
+      document.getElementById('reach30age').textContent  = (curAge + y30) + '歳';
+      document.getElementById('reach30year').textContent = (curYear + y30) + '年ごろ（あと' + y30 + '年）';
+    } else {
+      document.getElementById('reach30age').textContent  = '― 歳';
+      document.getElementById('reach30year').textContent = '数値を入力';
+    }
+    if (y20 !== null) {
+      document.getElementById('reach20age').textContent  = (curAge + y20) + '歳';
+      document.getElementById('reach20year').textContent = (curYear + y20) + '年ごろ（あと' + y20 + '年）';
+    } else {
+      document.getElementById('reach20age').textContent  = '― 歳';
+      document.getElementById('reach20year').textContent = '数値を入力';
+    }
+
+    // 1億進捗バー
+    const pct = totalMan > 0 ? totalMan / (GOAL/1e4) * 100 : 0;
+    ['pct30','pct20'].forEach(id => {
+      const el = document.getElementById(id);
+      el.textContent = totalMan > 0 ? Math.round(pct) + '%' : '―%';
+      el.className = 'pct ' + (pct >= 100 ? 'over' : 'under');
+    });
+    document.getElementById('bar30').style.width = Math.min(pct, 100) + '%';
+    document.getElementById('bar20').style.width = Math.min(pct, 100) + '%';
+    const remaining = Math.max(0, GOAL/1e4 - totalMan);
+    const subText = totalMan > 0
+      ? `1億まであと ${fmt(remaining)}`
+      : '';
+    document.getElementById('sub30').textContent = subText;
+    document.getElementById('sub20').textContent = subText;
+
+    // 予測との比較メッセージ
+    const msg = document.getElementById('msg');
+    if (totalMan > 0) {
+      // 経過月数時点の理論値（300万スタート想定）
+      const proj30 = 300 * Math.pow(1+RATE30, elapsed/12) + 300 + elapsed*10;
+      const proj20 = 300 * Math.pow(1+RATE20, elapsed/12) + 300 + elapsed*10;
+      msg.style.display = 'block';
+      if (totalMan >= proj30) {
+        msg.className = 'msg good';
+        msg.textContent = '🎉 30%シナリオ予測を上回るペースです！';
+      } else if (totalMan >= proj20) {
+        msg.className = 'msg good';
+        msg.textContent = '✅ 20%予測ペース！30%予測まであと ' + fmt(proj30 - totalMan);
+      } else {
+        msg.className = 'msg warn';
+        msg.textContent = '📌 20%予測まであと ' + fmt(proj20 - totalMan);
+      }
+    } else {
+      msg.style.display = 'none';
+    }
+
+    // グラフ
+    const labels = [], data30 = [], data20 = [], dataNow = [];
+    const stocks = stocksMan * 1e4, nisa = nisaMan * 1e4;
+    for (let y = 0; y <= 40; y++) {
+      const age = curAge + y;
+      const f30 = stocks * Math.pow(1+RATE30, y) + nisa + NISA_MONTH*12*y;
+      const f20 = stocks * Math.pow(1+RATE20, y) + nisa + NISA_MONTH*12*y;
+      labels.push(age + '歳');
+      data30.push(Math.min(f30/1e4, GOAL/1e4));
+      data20.push(Math.min(f20/1e4, GOAL/1e4));
+      dataNow.push(y === 0 && totalMan > 0 ? totalMan : null);
+      if (f30 >= GOAL && f20 >= GOAL) break;
+    }
+
+    if (chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(document.getElementById('chart'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: '30%シナリオ', data: data30, borderColor: '#ff9f0a',
+            borderWidth: 2.5, pointRadius: 3, tension: 0.35, fill: false },
+          { label: '20%シナリオ', data: data20, borderColor: '#457b9d',
+            borderWidth: 2.5, pointRadius: 3, tension: 0.35, fill: false },
+          { label: '現在地', data: dataNow,
+            borderColor: '#34c759', backgroundColor: '#34c759',
+            borderWidth: 0, pointRadius: 12, pointStyle: 'star', showLine: false },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { font: { size: 12 }, boxWidth: 14 } },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const v = ctx.parsed.y;
+                return ctx.dataset.label + ': ' + fmt(v);
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            max: GRAPH_MAX/1e4,
+            ticks: {
+              callback: v => v >= 10000 ? (v/10000)+'億' : v+'万',
+              font: { size: 11 }, maxTicksLimit: 6
+            },
+            grid: { color: 'rgba(0,0,0,.05)' }
+          },
+          x: { ticks: { font: { size: 10 } }, grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  document.getElementById('inputStocks').addEventListener('input', update);
+  document.getElementById('inputNisa').addEventListener('input', update);
+
+  load();
+  update();
+</script>
+</body>
+</html>
