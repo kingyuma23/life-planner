@@ -62,7 +62,7 @@
     /* 今月の増加テーブル */
     .diff-table {
       display: grid;
-      grid-template-columns: auto 1fr 1fr 1fr 1fr;
+      grid-template-columns: auto 1fr 1fr;
       gap: 6px;
       align-items: center;
     }
@@ -80,11 +80,13 @@
       padding-top: 10px; margin-top: 2px;
     }
     .diff-cell {
-      border-radius: 10px; padding: 8px 4px;
+      border-radius: 10px; padding: 8px 6px;
       text-align: center;
       font-size: 14px; font-weight: bold;
-      white-space: nowrap;
     }
+    .diff-row { display: flex; justify-content: space-between; align-items: baseline; gap: 4px; }
+    .diff-row-label { font-size: 10px; font-weight: normal; opacity: 0.7; }
+    .diff-row + .diff-row { margin-top: 5px; padding-top: 5px; border-top: 1px solid rgba(0,0,0,0.08); }
     .diff-cell.c30 { background: #fff4e0; color: #c87000; }
     .diff-cell.c20 { background: #e8f4f8; color: #2a6a8a; }
     .diff-cell.cnisa { background: #f2f2f7; color: #555; font-weight: normal; font-size: 12px; }
@@ -258,16 +260,18 @@
 
     <div class="diff-table">
       <div class="diff-th"></div>
-      <div class="diff-th">30%月</div>
-      <div class="diff-th">30%年</div>
-      <div class="diff-th">20%月</div>
-      <div class="diff-th">20%年</div>
+      <div class="diff-th">30%</div>
+      <div class="diff-th">20%</div>
 
       <div class="diff-label">📊 個別株</div>
-      <div class="diff-cell c30" id="diffStocks30">―</div>
-      <div class="diff-cell c30" id="diffStocks30y">―</div>
-      <div class="diff-cell c20" id="diffStocks20">―</div>
-      <div class="diff-cell c20" id="diffStocks20y">―</div>
+      <div class="diff-cell c30">
+        <div class="diff-row"><span class="diff-row-label">月</span><span id="diffStocks30">―</span></div>
+        <div class="diff-row"><span class="diff-row-label">年</span><span id="diffStocks30y">―</span></div>
+      </div>
+      <div class="diff-cell c20">
+        <div class="diff-row"><span class="diff-row-label">月</span><span id="diffStocks20">―</span></div>
+        <div class="diff-row"><span class="diff-row-label">年</span><span id="diffStocks20y">―</span></div>
+      </div>
     </div>
   </div>
 
