@@ -266,9 +266,9 @@
     </div>
   </div>
 
-  <!-- 1億到達予測 & 進捗 -->
+  <!-- 1.5億到達予測 & 進捗 -->
   <div class="card">
-    <div class="card-title">1億円への道のり</div>
+    <div class="card-title">1.5億円への道のり</div>
 
     <div class="section-label">🎯 到達予測</div>
     <div class="reach-grid">
@@ -336,7 +336,7 @@
 
   <!-- グラフ -->
   <div class="card">
-    <div class="card-title">成長曲線（1億円まで）</div>
+    <div class="card-title">成長曲線（1.5億円まで）</div>
     <div class="chart-wrap">
       <canvas id="chart"></canvas>
     </div>
@@ -352,8 +352,8 @@
   const NISA_MONTH  = 100000;
   const RATE30      = 0.30;
   const RATE20      = 0.20;
-  const GOAL        = 100000000;
-  const GRAPH_MAX   = 150000000;
+  const GOAL        = 150000000;
+  const GRAPH_MAX   = 200000000;
 
   const now      = new Date();
   const curYear  = now.getFullYear();
@@ -459,7 +459,7 @@
     document.getElementById('bar20').style.width = Math.min(pct, 100) + '%';
     const remaining = Math.max(0, GOAL/1e4 - totalMan);
     const subText = totalMan > 0
-      ? `1億まであと ${fmt(remaining)}`
+      ? `1.5億まであと ${fmt(remaining)}`
       : '';
     document.getElementById('sub30').textContent = subText;
     document.getElementById('sub20').textContent = subText;
