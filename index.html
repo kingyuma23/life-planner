@@ -62,7 +62,7 @@
     /* 今月の増加テーブル */
     .diff-table {
       display: grid;
-      grid-template-columns: auto 1fr 1fr;
+      grid-template-columns: auto 1fr 1fr 1fr 1fr;
       gap: 6px;
       align-items: center;
     }
@@ -258,12 +258,16 @@
 
     <div class="diff-table">
       <div class="diff-th"></div>
-      <div class="diff-th">30%</div>
-      <div class="diff-th">20%</div>
+      <div class="diff-th">30%月</div>
+      <div class="diff-th">30%年</div>
+      <div class="diff-th">20%月</div>
+      <div class="diff-th">20%年</div>
 
       <div class="diff-label">📊 個別株</div>
       <div class="diff-cell c30" id="diffStocks30">―</div>
+      <div class="diff-cell c30" id="diffStocks30y">―</div>
       <div class="diff-cell c20" id="diffStocks20">―</div>
+      <div class="diff-cell c20" id="diffStocks20y">―</div>
     </div>
   </div>
 
@@ -430,8 +434,10 @@
     const stockDiff30 = stocksMan * mRate30;
     const stockDiff20 = stocksMan * mRate20;
     const show = stocksMan > 0;
-    document.getElementById('diffStocks30').textContent = show ? fmtSign(stockDiff30) : '―';
-    document.getElementById('diffStocks20').textContent = show ? fmtSign(stockDiff20) : '―';
+    document.getElementById('diffStocks30').textContent  = show ? fmtSign(stockDiff30) : '―';
+    document.getElementById('diffStocks30y').textContent = show ? fmtSign(stocksMan * RATE30) : '―';
+    document.getElementById('diffStocks20').textContent  = show ? fmtSign(stockDiff20) : '―';
+    document.getElementById('diffStocks20y').textContent = show ? fmtSign(stocksMan * RATE20) : '―';
 
     // 到達予測
     const y30 = calcReachYear(stocksMan, nisaMan, RATE30);
