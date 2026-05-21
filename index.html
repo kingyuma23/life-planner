@@ -129,6 +129,46 @@
 
     .divider { height: 1px; background: #f2f2f7; margin: 12px 0; }
 
+    /* 月次実績 */
+    .monthly-input-row {
+      background: #f2f2f7; border-radius: 12px; padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+    .monthly-month { font-size: 12px; color: #8e8e93; margin-bottom: 6px; }
+    .monthly-inner { display: flex; align-items: baseline; gap: 8px; }
+    .monthly-inner input {
+      flex: 1; font-size: 24px; font-weight: bold; color: #1d3557;
+      border: none; border-bottom: 2px solid #457b9d;
+      background: transparent; outline: none; font-family: inherit; min-width: 0;
+    }
+    .monthly-unit { font-size: 14px; color: #8e8e93; white-space: nowrap; }
+    .monthly-inner button {
+      background: #457b9d; color: white; border: none;
+      border-radius: 8px; padding: 6px 16px; font-size: 14px;
+      font-family: inherit; cursor: pointer; white-space: nowrap;
+    }
+    .monthly-inner button:active { opacity: .8; }
+
+    .monthly-history { display: flex; flex-direction: column; gap: 6px; }
+    .monthly-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 12px; border-radius: 10px; background: #f2f2f7;
+    }
+    .monthly-row .mdate { font-size: 13px; color: #555; }
+    .monthly-row .mval  { font-size: 16px; font-weight: bold; }
+    .monthly-row .mval.pos { color: #34c759; }
+    .monthly-row .mval.neg { color: #ff3b30; }
+    .monthly-row .mdel {
+      background: none; border: none; color: #c7c7cc;
+      font-size: 18px; cursor: pointer; padding: 0 4px; line-height: 1;
+    }
+    .monthly-total {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 12px; border-top: 1px solid #e5e5ea; margin-top: 4px;
+    }
+    .monthly-total .mtlabel { font-size: 13px; font-weight: bold; color: #1c1c1e; }
+    .monthly-total .mtval   { font-size: 18px; font-weight: bold; color: #1d3557; }
+
     .section-label { font-size: 11px; color: #8e8e93; margin-bottom: 8px; }
 
     /* グラフ */
@@ -245,6 +285,22 @@
     </div>
 
     <div class="msg" id="msg" style="display:none"></div>
+  </div>
+
+  <!-- 月次実績 -->
+  <div class="card">
+    <div class="card-title">月次実績（個別株）</div>
+
+    <div class="monthly-input-row">
+      <div class="monthly-month" id="monthLabel">2026年5月</div>
+      <div class="monthly-inner">
+        <input type="number" id="monthlyProfit" placeholder="0" step="1">
+        <span class="monthly-unit">万円</span>
+        <button id="monthlyBtn" onclick="saveMonthly()">保存</button>
+      </div>
+    </div>
+
+    <div id="monthlyHistory" class="monthly-history"></div>
   </div>
 
   <!-- グラフ -->
@@ -460,6 +516,63 @@
 
   load();
   update();
+
+  // ── 月次実績 ──────────────────────────────────
+  const monthKey = `${curYear}-${String(curMonth).padStart(2,'0')}`;
+  document.getElementById('monthLabel').textContent = `${curYear}年${curMonth}月`;
+
+  function loadMonthly() {
+    return JSON.parse(localStorage.getItem('lifeapp_monthly') || '{}');
+  }
+  function saveMonthly() {
+    const val = parseFloat(document.getElementById('monthlyProfit').value);
+    if (isNaN(val)) return;
+    const data = loadMonthly();
+    data[monthKey] = val;
+    localStorage.setItem('lifeapp_monthly', JSON.stringify(data));
+    renderMonthly();
+  }
+  function deleteMonthly(key) {
+    const data = loadMonthly();
+    delete data[key];
+    localStorage.setItem('lifeapp_monthly', JSON.stringify(data));
+    renderMonthly();
+  }
+  function renderMonthly() {
+    const data = loadMonthly();
+    const keys = Object.keys(data).sort().reverse();
+    const el = document.getElementById('monthlyHistory');
+
+    // 今月の値をフォームに反映
+    if (data[monthKey] !== undefined) {
+      document.getElementById('monthlyProfit').value = data[monthKey];
+    }
+
+    if (keys.length === 0) { el.innerHTML = ''; return; }
+
+    const total = keys.reduce((s, k) => s + data[k], 0);
+    const rows = keys.map(k => {
+      const [y, m] = k.split('-');
+      const v = data[k];
+      const cls = v >= 0 ? 'pos' : 'neg';
+      const sign = v >= 0 ? '+' : '';
+      return `<div class="monthly-row">
+        <span class="mdate">${y}年${parseInt(m)}月</span>
+        <span class="mval ${cls}">${sign}${v}万円</span>
+        <button class="mdel" onclick="deleteMonthly('${k}')">×</button>
+      </div>`;
+    }).join('');
+
+    const totalCls = total >= 0 ? 'pos' : 'neg';
+    const totalSign = total >= 0 ? '+' : '';
+    el.innerHTML = rows + `
+      <div class="monthly-total">
+        <span class="mtlabel">累計</span>
+        <span class="mtval ${totalCls}">${totalSign}${Math.round(total*10)/10}万円</span>
+      </div>`;
+  }
+
+  renderMonthly();
 </script>
 </body>
 </html>
