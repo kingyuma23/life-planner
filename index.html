@@ -130,44 +130,64 @@
     .divider { height: 1px; background: #f2f2f7; margin: 12px 0; }
 
     /* 月次実績 */
-    .monthly-input-row {
-      background: #f2f2f7; border-radius: 12px; padding: 12px 14px;
+    .my-year-nav {
+      display: flex; align-items: center; justify-content: center; gap: 20px;
+      margin-bottom: 14px;
+    }
+    .my-year-nav button {
+      background: none; border: none; font-size: 24px; color: #457b9d;
+      cursor: pointer; padding: 0 4px; line-height: 1;
+    }
+    .my-year-nav span { font-size: 17px; font-weight: bold; color: #1c1c1e; min-width: 60px; text-align: center; }
+
+    .my-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
       margin-bottom: 12px;
     }
-    .monthly-month { font-size: 12px; color: #8e8e93; margin-bottom: 6px; }
-    .monthly-inner { display: flex; align-items: baseline; gap: 8px; }
-    .monthly-inner input {
+    .my-cell {
+      background: #f2f2f7; border-radius: 10px; padding: 8px 4px;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      cursor: pointer; border: 2px solid transparent;
+      transition: border-color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .my-cell.current { border-color: #457b9d; }
+    .my-cell.editing { border-color: #1d3557; background: #e8f0f7; }
+    .my-cell .mc-label { font-size: 11px; color: #8e8e93; }
+    .my-cell .mc-val { font-size: 13px; font-weight: bold; }
+    .my-cell .mc-val.pos { color: #34c759; }
+    .my-cell .mc-val.neg { color: #ff3b30; }
+    .my-cell .mc-val.empty { color: #c7c7cc; font-weight: normal; }
+
+    .my-edit {
+      background: #f2f2f7; border-radius: 12px; padding: 12px 14px;
+      margin-bottom: 12px; display: none;
+    }
+    .my-edit.show { display: block; }
+    .my-edit-label { font-size: 12px; color: #8e8e93; margin-bottom: 6px; }
+    .my-edit-inner { display: flex; align-items: baseline; gap: 8px; }
+    .my-edit-inner input {
       flex: 1; font-size: 24px; font-weight: bold; color: #1d3557;
       border: none; border-bottom: 2px solid #457b9d;
       background: transparent; outline: none; font-family: inherit; min-width: 0;
     }
-    .monthly-unit { font-size: 14px; color: #8e8e93; white-space: nowrap; }
-    .monthly-inner button {
-      background: #457b9d; color: white; border: none;
-      border-radius: 8px; padding: 6px 16px; font-size: 14px;
+    .my-edit-inner .unit { font-size: 14px; color: #8e8e93; white-space: nowrap; }
+    .my-edit-btns { display: flex; gap: 8px; margin-top: 10px; }
+    .my-edit-btns button {
+      border: none; border-radius: 8px; padding: 7px 16px; font-size: 14px;
       font-family: inherit; cursor: pointer; white-space: nowrap;
     }
-    .monthly-inner button:active { opacity: .8; }
-
-    .monthly-history { display: flex; flex-direction: column; gap: 6px; }
-    .monthly-row {
+    .my-edit-btns .btn-save { background: #457b9d; color: white; flex: 1; }
+    .my-edit-btns .btn-del  { background: #fee2e2; color: #ff3b30; }
+    .my-annual {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 12px; border-radius: 10px; background: #f2f2f7;
+      padding: 10px 12px; border-top: 1px solid #e5e5ea;
     }
-    .monthly-row .mdate { font-size: 13px; color: #555; }
-    .monthly-row .mval  { font-size: 16px; font-weight: bold; }
-    .monthly-row .mval.pos { color: #34c759; }
-    .monthly-row .mval.neg { color: #ff3b30; }
-    .monthly-row .mdel {
-      background: none; border: none; color: #c7c7cc;
-      font-size: 18px; cursor: pointer; padding: 0 4px; line-height: 1;
-    }
-    .monthly-total {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 12px; border-top: 1px solid #e5e5ea; margin-top: 4px;
-    }
-    .monthly-total .mtlabel { font-size: 13px; font-weight: bold; color: #1c1c1e; }
-    .monthly-total .mtval   { font-size: 18px; font-weight: bold; color: #1d3557; }
+    .my-annual .mal { font-size: 13px; font-weight: bold; color: #1c1c1e; }
+    .my-annual .mav { font-size: 18px; font-weight: bold; }
+    .my-annual .mav.pos { color: #34c759; }
+    .my-annual .mav.neg { color: #ff3b30; }
+    .my-annual .mav.zero { color: #8e8e93; }
 
     .section-label { font-size: 11px; color: #8e8e93; margin-bottom: 8px; }
 
@@ -291,16 +311,27 @@
   <div class="card">
     <div class="card-title">月次実績（個別株）</div>
 
-    <div class="monthly-input-row">
-      <div class="monthly-month" id="monthLabel">2026年5月</div>
-      <div class="monthly-inner">
-        <input type="number" id="monthlyProfit" placeholder="0" step="1">
-        <span class="monthly-unit">万円</span>
-        <button id="monthlyBtn" onclick="saveMonthly()">保存</button>
+    <div class="my-year-nav">
+      <button onclick="changeMyYear(-1)">‹</button>
+      <span id="myYearLabel"></span>
+      <button onclick="changeMyYear(1)">›</button>
+    </div>
+
+    <div class="my-grid" id="myGrid"></div>
+
+    <div class="my-edit" id="myEditArea">
+      <div class="my-edit-label" id="myEditLabel"></div>
+      <div class="my-edit-inner">
+        <input type="number" id="myEditInput" placeholder="0" step="0.1">
+        <span class="unit">万円</span>
+      </div>
+      <div class="my-edit-btns">
+        <button class="btn-save" onclick="saveMyMonth()">保存</button>
+        <button class="btn-del" onclick="deleteMyMonth()">削除</button>
       </div>
     </div>
 
-    <div id="monthlyHistory" class="monthly-history"></div>
+    <div class="my-annual" id="myAnnual"></div>
   </div>
 
   <!-- グラフ -->
@@ -518,61 +549,97 @@
   update();
 
   // ── 月次実績 ──────────────────────────────────
-  const monthKey = `${curYear}-${String(curMonth).padStart(2,'0')}`;
-  document.getElementById('monthLabel').textContent = `${curYear}年${curMonth}月`;
-
   function loadMonthly() {
     return JSON.parse(localStorage.getItem('lifeapp_monthly') || '{}');
   }
-  function saveMonthly() {
-    const val = parseFloat(document.getElementById('monthlyProfit').value);
-    if (isNaN(val)) return;
-    const data = loadMonthly();
-    data[monthKey] = val;
-    localStorage.setItem('lifeapp_monthly', JSON.stringify(data));
-    renderMonthly();
+
+  let myYear = curYear;
+  let myEditMonth = null;
+
+  function changeMyYear(d) {
+    myYear += d;
+    myEditMonth = null;
+    document.getElementById('myEditArea').classList.remove('show');
+    renderMyGrid();
   }
-  function deleteMonthly(key) {
+
+  function selectMyMonth(m) {
+    myEditMonth = m;
+    const data = loadMonthly();
+    const key = `${myYear}-${String(m).padStart(2,'0')}`;
+    document.getElementById('myEditLabel').textContent = `${myYear}年${m}月`;
+    document.getElementById('myEditInput').value = data[key] !== undefined ? data[key] : '';
+    document.getElementById('myEditArea').classList.add('show');
+    document.getElementById('myEditInput').focus();
+    renderMyGrid();
+  }
+
+  function saveMyMonth() {
+    if (myEditMonth === null) return;
+    const val = parseFloat(document.getElementById('myEditInput').value);
+    const key = `${myYear}-${String(myEditMonth).padStart(2,'0')}`;
+    const data = loadMonthly();
+    if (isNaN(val)) { delete data[key]; } else { data[key] = val; }
+    localStorage.setItem('lifeapp_monthly', JSON.stringify(data));
+    document.getElementById('myEditArea').classList.remove('show');
+    myEditMonth = null;
+    renderMyGrid();
+  }
+
+  function deleteMyMonth() {
+    if (myEditMonth === null) return;
+    const key = `${myYear}-${String(myEditMonth).padStart(2,'0')}`;
     const data = loadMonthly();
     delete data[key];
     localStorage.setItem('lifeapp_monthly', JSON.stringify(data));
-    renderMonthly();
+    document.getElementById('myEditArea').classList.remove('show');
+    myEditMonth = null;
+    renderMyGrid();
   }
-  function renderMonthly() {
-    const data = loadMonthly();
-    const keys = Object.keys(data).sort().reverse();
-    const el = document.getElementById('monthlyHistory');
 
-    // 今月の値をフォームに反映
-    if (data[monthKey] !== undefined) {
-      document.getElementById('monthlyProfit').value = data[monthKey];
+  function renderMyGrid() {
+    document.getElementById('myYearLabel').textContent = `${myYear}年`;
+    const data = loadMonthly();
+    let html = '';
+    let total = 0;
+    let hasAny = false;
+
+    for (let m = 1; m <= 12; m++) {
+      const key = `${myYear}-${String(m).padStart(2,'0')}`;
+      const val = data[key];
+      const isCurrent = (myYear === curYear && m === curMonth);
+      const isEditing = (myEditMonth === m);
+
+      let valHtml;
+      if (val !== undefined) {
+        const cls = val >= 0 ? 'pos' : 'neg';
+        const sign = val >= 0 ? '+' : '';
+        valHtml = `<span class="mc-val ${cls}">${sign}${val}万</span>`;
+        total += val;
+        hasAny = true;
+      } else {
+        valHtml = `<span class="mc-val empty">―</span>`;
+      }
+
+      html += `<div class="my-cell${isCurrent ? ' current' : ''}${isEditing ? ' editing' : ''}" onclick="selectMyMonth(${m})">
+        <span class="mc-label">${m}月</span>
+        ${valHtml}
+      </div>`;
     }
 
-    if (keys.length === 0) { el.innerHTML = ''; return; }
+    document.getElementById('myGrid').innerHTML = html;
 
-    const total = keys.reduce((s, k) => s + data[k], 0);
-    const rows = keys.map(k => {
-      const [y, m] = k.split('-');
-      const v = data[k];
-      const cls = v >= 0 ? 'pos' : 'neg';
-      const sign = v >= 0 ? '+' : '';
-      return `<div class="monthly-row">
-        <span class="mdate">${y}年${parseInt(m)}月</span>
-        <span class="mval ${cls}">${sign}${v}万円</span>
-        <button class="mdel" onclick="deleteMonthly('${k}')">×</button>
-      </div>`;
-    }).join('');
-
-    const totalCls = total >= 0 ? 'pos' : 'neg';
-    const totalSign = total >= 0 ? '+' : '';
-    el.innerHTML = rows + `
-      <div class="monthly-total">
-        <span class="mtlabel">累計</span>
-        <span class="mtval ${totalCls}">${totalSign}${Math.round(total*10)/10}万円</span>
-      </div>`;
+    const annualEl = document.getElementById('myAnnual');
+    if (hasAny) {
+      const cls = total > 0 ? 'pos' : total < 0 ? 'neg' : 'zero';
+      const sign = total > 0 ? '+' : '';
+      annualEl.innerHTML = `<span class="mal">年間合計</span><span class="mav ${cls}">${sign}${Math.round(total*10)/10}万円</span>`;
+    } else {
+      annualEl.innerHTML = `<span class="mal">年間合計</span><span class="mav zero">―</span>`;
+    }
   }
 
-  renderMonthly();
+  renderMyGrid();
 </script>
 </body>
 </html>
