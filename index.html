@@ -59,19 +59,38 @@
     .total-banner .right { text-align: right; }
     .total-banner .right .sub { font-size: 12px; opacity: .8; margin-top: 4px; }
 
-    /* 今月の増加 */
-    .diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .diff-box {
-      border-radius: 12px; padding: 12px;
-      display: flex; flex-direction: column; gap: 3px;
+    /* 今月の増加テーブル */
+    .diff-table {
+      display: grid;
+      grid-template-columns: auto 1fr 1fr;
+      gap: 6px;
+      align-items: center;
     }
-    .diff-box.d30 { background: #fff4e0; }
-    .diff-box.d20 { background: #e8f4f8; }
-    .diff-box .dlabel { font-size: 11px; color: #8e8e93; }
-    .diff-box .dval   { font-size: 19px; font-weight: bold; }
-    .diff-box.d30 .dval { color: #c87000; }
-    .diff-box.d20 .dval { color: #2a6a8a; }
-    .diff-box .dsub   { font-size: 11px; color: #8e8e93; }
+    .diff-th {
+      font-size: 11px; font-weight: bold; color: #8e8e93;
+      text-align: center; padding-bottom: 2px;
+    }
+    .diff-label {
+      font-size: 12px; color: #555;
+      padding: 4px 4px; white-space: nowrap;
+    }
+    .diff-total-label {
+      font-weight: bold; color: #1c1c1e;
+      border-top: 1px solid #e5e5ea;
+      padding-top: 10px; margin-top: 2px;
+    }
+    .diff-cell {
+      border-radius: 10px; padding: 8px 4px;
+      text-align: center;
+      font-size: 14px; font-weight: bold;
+      white-space: nowrap;
+    }
+    .diff-cell.c30 { background: #fff4e0; color: #c87000; }
+    .diff-cell.c20 { background: #e8f4f8; color: #2a6a8a; }
+    .diff-cell.cnisa { background: #f2f2f7; color: #555; font-weight: normal; font-size: 12px; }
+    .diff-cell.diff-total { font-size: 17px; }
+    .diff-cell.diff-total.c30 { border-top: 1px solid #f5d98a; padding-top: 10px; margin-top: 2px; }
+    .diff-cell.diff-total.c20 { border-top: 1px solid #a8d4e8; padding-top: 10px; margin-top: 2px; }
 
     /* 到達予測 */
     .reach-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
@@ -163,17 +182,27 @@
   <!-- 今月の増加額 -->
   <div class="card">
     <div class="card-title">今月の増加額（試算）</div>
-    <div class="diff-grid">
-      <div class="diff-box d30">
-        <div class="dlabel">30%シナリオ</div>
-        <div class="dval" id="diff30">―</div>
-        <div class="dsub" id="diff30detail">株 ― ＋ NISA 10万</div>
-      </div>
-      <div class="diff-box d20">
-        <div class="dlabel">20%シナリオ</div>
-        <div class="dval" id="diff20">―</div>
-        <div class="dsub" id="diff20detail">株 ― ＋ NISA 10万</div>
-      </div>
+
+    <!-- ヘッダー行 -->
+    <div class="diff-table">
+      <div class="diff-th"></div>
+      <div class="diff-th">30%</div>
+      <div class="diff-th">20%</div>
+
+      <!-- 個別株 -->
+      <div class="diff-label">📊 個別株</div>
+      <div class="diff-cell c30" id="diffStocks30">―</div>
+      <div class="diff-cell c20" id="diffStocks20">―</div>
+
+      <!-- 積立NISA -->
+      <div class="diff-label">🏦 積立NISA</div>
+      <div class="diff-cell cnisa" id="diffNisa30">+10万円</div>
+      <div class="diff-cell cnisa" id="diffNisa20">+10万円</div>
+
+      <!-- 合計 -->
+      <div class="diff-label diff-total-label">合計</div>
+      <div class="diff-cell c30 diff-total" id="diff30">―</div>
+      <div class="diff-cell c20 diff-total" id="diff20">―</div>
     </div>
   </div>
 
@@ -308,14 +337,11 @@
     const mRate20 = Math.pow(1 + RATE20, 1/12) - 1;
     const stockDiff30 = stocksMan * mRate30;
     const stockDiff20 = stocksMan * mRate20;
-    document.getElementById('diff30').textContent =
-      stocksMan > 0 ? fmtSign(stockDiff30 + NISA_MONTH/1e4) : '―';
-    document.getElementById('diff20').textContent =
-      stocksMan > 0 ? fmtSign(stockDiff20 + NISA_MONTH/1e4) : '―';
-    document.getElementById('diff30detail').textContent =
-      stocksMan > 0 ? `株 +${fmt(stockDiff30)} ＋ NISA 10万` : '数値を入力してください';
-    document.getElementById('diff20detail').textContent =
-      stocksMan > 0 ? `株 +${fmt(stockDiff20)} ＋ NISA 10万` : '';
+    const show = stocksMan > 0;
+    document.getElementById('diffStocks30').textContent = show ? fmtSign(stockDiff30) : '―';
+    document.getElementById('diffStocks20').textContent = show ? fmtSign(stockDiff20) : '―';
+    document.getElementById('diff30').textContent = show ? fmtSign(stockDiff30 + NISA_MONTH/1e4) : '―';
+    document.getElementById('diff20').textContent = show ? fmtSign(stockDiff20 + NISA_MONTH/1e4) : '―';
 
     // 到達予測
     const y30 = calcReachYear(stocksMan, nisaMan, RATE30);
