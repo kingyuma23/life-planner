@@ -224,6 +224,13 @@
           <span class="unit">万円</span>
         </div>
       </div>
+      <div class="input-row">
+        <label>🏧 口座残高</label>
+        <div class="input-inner">
+          <input type="number" id="inputCash" placeholder="0" min="0" step="10">
+          <span class="unit">万円</span>
+        </div>
+      </div>
     </div>
 
     <div class="total-banner" style="margin-top:12px;">
@@ -376,12 +383,15 @@
   function save() {
     localStorage.setItem('lifeapp_stocks', document.getElementById('inputStocks').value);
     localStorage.setItem('lifeapp_nisa',   document.getElementById('inputNisa').value);
+    localStorage.setItem('lifeapp_cash',   document.getElementById('inputCash').value);
   }
   function load() {
     const s = localStorage.getItem('lifeapp_stocks') ?? '300';
     const n = localStorage.getItem('lifeapp_nisa')   ?? '300';
+    const c = localStorage.getItem('lifeapp_cash')   ?? '0';
     document.getElementById('inputStocks').value = s;
     document.getElementById('inputNisa').value   = n;
+    document.getElementById('inputCash').value   = c;
   }
 
   // 到達年数を計算（何年後に1億に達するか）
@@ -407,7 +417,8 @@
   function update() {
     const stocksMan = parseFloat(document.getElementById('inputStocks').value) || 0;
     const nisaMan   = parseFloat(document.getElementById('inputNisa').value)   || 0;
-    const totalMan  = stocksMan + nisaMan;
+    const cashMan   = parseFloat(document.getElementById('inputCash').value)   || 0;
+    const totalMan  = stocksMan + nisaMan + cashMan;
 
     save();
 
@@ -544,6 +555,7 @@
 
   document.getElementById('inputStocks').addEventListener('input', update);
   document.getElementById('inputNisa').addEventListener('input', update);
+  document.getElementById('inputCash').addEventListener('input', update);
 
   load();
   update();
