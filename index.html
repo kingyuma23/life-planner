@@ -668,13 +668,16 @@
     if (hasAny) {
       const tc = total > 0 ? 'pos' : total < 0 ? 'neg' : 'zero';
       const ts = total >= 0 ? '+' : '';
-      const a30 = gapLabel(annualDiff30), a20 = gapLabel(annualDiff20);
+      const annualTarget30 = stocksMan * RATE30;
+      const annualTarget20 = stocksMan * RATE20;
+      const a30 = gapLabel(total - annualTarget30);
+      const a20 = gapLabel(total - annualTarget20);
       annualEl.innerHTML = `
         <span class="mal">年間合計</span>
         <span class="mav ${tc}">${ts}${Math.round(total*10)/10}万円</span>
-        <span class="mal ann-sub">30%との差</span>
+        <span class="mal ann-sub">30%目標との差</span>
         <span class="mav ann-sub ${a30.cls}">${a30.sign}${a30.v}万円</span>
-        <span class="mal ann-sub">20%との差</span>
+        <span class="mal ann-sub">20%目標との差</span>
         <span class="mav ann-sub ${a20.cls}">${a20.sign}${a20.v}万円</span>`;
     } else {
       annualEl.innerHTML = `<span class="mal">年間合計</span><span class="mav zero">―</span>`;
